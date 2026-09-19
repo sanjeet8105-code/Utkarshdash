@@ -1,28 +1,23 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { User, Landmark, TrendingUp, MessageSquare } from "lucide-react";
 
-const PROFILE = {
+const SAMPLE_PROFILE = {
   name: "Rahul Kumar",
   email: "rahul.kumar@example.com",
   mobile: "77393 10429",
-  whatsapp: "77393 10429",
-  kycStatus: "KYC Done",
 };
 
-const BANK = {
+const SAMPLE_BANK = {
   bankName: "Canara Bank",
   accountNumber: "364200056193688",
   ifsc: "CNRB0003642",
   accountHolder: "Rahul Kumar",
 };
 
-const LOAN = {
-  amount: 800000,
-  tenureMonths: 18,
-  emi: 47678,
-  status: "In Progress",
-};
+const SAMPLE_LOAN = { amount: 800000, tenureMonths: 18, emi: 47678, status: "In Progress" };
 
 function formatINR(value: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -63,7 +58,49 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-export default function ProfilePage() {
+function ProfileInner() {
+  const id = useSearchParams().get("id");
+  const [summary, setSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/dashboard/summary?id=${id}`)
+      .then((r) => r.json())
+      .then((json) => !json.error && setSummary(json))
+      .catch(() => {});
+  }, [id]);
+
+  const applicant = summary?.applicant;
+  const personal = summary?.personalInfo;
+  const bank = summary?.bank;
+  const loan = summary?.loan;
+
+  const PROFILE = personal
+    ? {
+        name: personal.full_name || "Applicant",
+        email: personal.email || "—",
+        mobile: applicant?.mobile_number || "—",
+      }
+    : SAMPLE_PROFILE;
+
+  const BANK = bank
+    ? {
+        bankName: bank.bank_name || "—",
+        accountNumber: bank.account_number || "—",
+        ifsc: bank.ifsc_code || "—",
+        accountHolder: bank.account_holder_name || "—",
+      }
+    : SAMPLE_BANK;
+
+  const LOAN = loan
+    ? {
+        amount: loan.loan_amount ?? 0,
+        tenureMonths: loan.tenure_months ?? 0,
+        emi: loan.emi ?? 0,
+        status: applicant?.status ?? "In Progress",
+      }
+    : SAMPLE_LOAN;
+
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">Profile</h1>
@@ -73,11 +110,6 @@ export default function ProfilePage() {
           <Row label="Name" value={PROFILE.name} />
           <Row label="Email" value={PROFILE.email} />
           <Row label="Mobile" value={PROFILE.mobile} />
-          <Row label="WhatsApp" value={PROFILE.whatsapp} />
-          <p>
-            <span className="font-semibold text-ink">KYC Status:</span>{" "}
-            <span className="font-semibold text-brand">{PROFILE.kycStatus}</span>
-          </p>
         </InfoCard>
 
         <InfoCard icon={Landmark} title="Bank Details">
@@ -104,5 +136,13 @@ export default function ProfilePage() {
         </InfoCard>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={null}>
+      <ProfileInner />
+    </Suspense>
   );
 }

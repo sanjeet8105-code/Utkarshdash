@@ -1,22 +1,16 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Lock, Sparkles, Info, Receipt, Wallet as WalletIcon } from "lucide-react";
 
-const WALLET = {
+const SAMPLE = {
   sanctionedLoan: 800000,
   balance: 0,
   emi: 47678,
   tenureMonths: 18,
+  transactions: [{ label: "Approval", date: "13/9/2026", status: "Due", amount: 1999 }],
 };
-
-const TRANSACTIONS = [
-  {
-    label: "Approval",
-    date: "13/9/2026",
-    status: "Due",
-    amount: 1999,
-  },
-];
 
 function formatINR(value: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -26,13 +20,45 @@ function formatINR(value: number) {
   }).format(value);
 }
 
-export default function WalletPage() {
+function WalletInner() {
+  const id = useSearchParams().get("id");
+  const [summary, setSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/dashboard/summary?id=${id}`)
+      .then((r) => r.json())
+      .then((json) => !json.error && setSummary(json))
+      .catch(() => {});
+  }, [id]);
+
+  const wallet = summary?.wallet;
+  const loan = summary?.loan;
+
+  const WALLET = wallet
+    ? {
+        sanctionedLoan: wallet.sanctioned_amount ?? 0,
+        balance: wallet.balance ?? 0,
+        emi: loan?.emi ?? SAMPLE.emi,
+        tenureMonths: loan?.tenure_months ?? SAMPLE.tenureMonths,
+      }
+    : SAMPLE;
+
+  const transactions =
+    wallet?.wallet_transactions?.length > 0
+      ? wallet.wallet_transactions.map((t: any) => ({
+          label: t.label,
+          date: new Date(t.transaction_date).toLocaleDateString("en-IN"),
+          status: t.status === "due" ? "Due" : t.status === "paid" ? "Paid" : "Credited",
+          amount: t.amount,
+        }))
+      : SAMPLE.transactions;
+
   return (
     <div className="mx-auto max-w-4xl">
       <p className="text-sm font-semibold text-brand">Customer Wallet</p>
       <h1 className="mt-1 text-2xl font-extrabold text-ink sm:text-3xl">My Wallet</h1>
 
-      {/* Locked wallet card */}
       <div className="relative mt-6 overflow-hidden rounded-2xl bg-navy p-6 text-white sm:p-8">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
         <p className="flex items-center gap-2 text-sm text-white/70">
@@ -49,7 +75,6 @@ export default function WalletPage() {
         </p>
       </div>
 
-      {/* Wallet balance */}
       <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -70,7 +95,6 @@ export default function WalletPage() {
         </p>
       </div>
 
-      {/* Upload notice */}
       <div className="mt-5 flex items-start gap-3 rounded-2xl bg-brand-light p-5">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
         <div>
@@ -84,17 +108,13 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Transaction history */}
       <div className="mt-5 rounded-2xl border border-black/5 bg-white p-5 sm:p-6">
         <h2 className="flex items-center gap-2 text-base font-bold text-brand">
           <Receipt className="h-4 w-4" /> Transaction History
         </h2>
         <div className="mt-4 flex flex-col divide-y divide-black/5">
-          {TRANSACTIONS.map((tx) => (
-            <div
-              key={tx.label}
-              className="flex items-center justify-between py-3.5"
-            >
+          {transactions.map((tx: any, i: number) => (
+            <div key={i} className="flex items-center justify-between py-3.5">
               <div>
                 <p className="text-sm font-bold text-ink">{tx.label}</p>
                 <p className="text-xs text-muted">{tx.date}</p>
@@ -112,7 +132,6 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* Loan summary */}
       <div className="mt-5 rounded-2xl border border-black/5 bg-white p-5 sm:p-6">
         <h2 className="flex items-center gap-2 text-base font-bold text-brand">
           <WalletIcon className="h-4 w-4" /> Loan Summary
@@ -139,5 +158,13 @@ export default function WalletPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function WalletPage() {
+  return (
+    <Suspense fallback={null}>
+      <WalletInner />
+    </Suspense>
   );
 }

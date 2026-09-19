@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   Clock,
@@ -14,11 +16,11 @@ import {
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
-/*  Sample data — replace with a Supabase fetch keyed on the logged-in */
-/*  applicant's id once auth is wired up.                             */
+/*  Sample data — shown until a real application is loaded via         */
+/*  ?id=<applicant-id> (set by /apply on submit).                      */
 /* ------------------------------------------------------------------ */
 
-const APPLICATION = {
+const SAMPLE_APPLICATION = {
   id: "APP2394857610293",
   applicantName: "Rahul Kumar",
   loanPurpose: "Personal Loan",
@@ -31,39 +33,25 @@ const APPLICATION = {
   walletBalance: 800000,
 };
 
-const STEPS = [
+const SAMPLE_STEPS = [
   {
     title: "Application Submitted",
     desc: "Your loan application has been submitted successfully.",
   },
-  {
-    title: "Agent Assigned",
-    desc: "Ashish K. has been assigned to assist you.",
-  },
+  { title: "Agent Assigned", desc: "Ashish K. has been assigned to assist you." },
   {
     title: "Welcome Letter Sent",
     desc: "Your welcome letter has been issued for this application.",
   },
-  {
-    title: "Under Review",
-    desc: "Your application review has been completed.",
-  },
+  { title: "Under Review", desc: "Your application review has been completed." },
   {
     title: "Approved",
     desc: "Your loan application has been approved and the sanctioned loan amount has been credited to your wallet.",
   },
-  {
-    title: "Approval Due",
-    desc: `Please pay ₹${APPLICATION.pendingFee.toLocaleString("en-IN")} to continue.`,
-  },
+  { title: "Approval Due", desc: "Please pay the pending fee to continue." },
 ];
 
-const CURRENT_STEP = 5; // zero-indexed — "Approval Due"
-
-const CHECKLIST = [
-  { name: "Aadhaar Card", status: "pending" },
-  { name: "PAN Card", status: "pending" },
-];
+const SAMPLE_CURRENT_STEP = 5;
 
 const PAY_TO = {
   accountHolder: "Utkarsh Capital Pvt Ltd",
@@ -73,6 +61,8 @@ const PAY_TO = {
   upi: "8084326199@ptyes",
 };
 
+const SAMPLE_AGENT = { name: "Ashish K.", phone: "+91 75860 39825" };
+
 function formatINR(value: number) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -81,7 +71,64 @@ function formatINR(value: number) {
   }).format(value);
 }
 
-export default function DashboardPage() {
+function DashboardInner() {
+  const id = useSearchParams().get("id");
+  const [summary, setSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/dashboard/summary?id=${id}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (!json.error) setSummary(json);
+      })
+      .catch(() => {});
+  }, [id]);
+
+  const applicant = summary?.applicant;
+  const loan = summary?.loan;
+  const wallet = summary?.wallet;
+  const dueFee = summary?.fees?.find((f: any) => f.status === "due");
+  const checklist = summary?.applicant
+    ? [
+        { name: "Aadhaar Card", status: summary?.document?.aadhar_status ?? "pending" },
+        { name: "PAN Card", status: summary?.document?.pan_status ?? "pending" },
+      ]
+    : [
+        { name: "Aadhaar Card", status: "pending" },
+        { name: "PAN Card", status: "pending" },
+      ];
+
+  const APPLICATION = applicant
+    ? {
+        id: `APP${applicant.id.slice(0, 8).toUpperCase()}`,
+        applicantName: summary?.personalInfo?.full_name || "Applicant",
+        loanPurpose: loan?.loan_purpose || SAMPLE_APPLICATION.loanPurpose,
+        loanAmount: loan?.loan_amount ?? SAMPLE_APPLICATION.loanAmount,
+        tenureMonths: loan?.tenure_months ?? SAMPLE_APPLICATION.tenureMonths,
+        interestRate: loan?.interest_rate ?? SAMPLE_APPLICATION.interestRate,
+        emi: loan?.emi ?? SAMPLE_APPLICATION.emi,
+        status: applicant.status ?? SAMPLE_APPLICATION.status,
+        pendingFee: dueFee?.amount ?? 0,
+        walletBalance: wallet?.sanctioned_amount ?? 0,
+      }
+    : SAMPLE_APPLICATION;
+
+  const STEPS =
+    summary?.progress?.length > 0
+      ? summary.progress.map((p: any) => ({ title: p.step_name, desc: p.description }))
+      : SAMPLE_STEPS;
+
+  const CURRENT_STEP =
+    summary?.progress?.length > 0
+      ? Math.max(
+          0,
+          summary.progress.findIndex((p: any) => p.step_status !== "completed")
+        )
+      : SAMPLE_CURRENT_STEP;
+
+  const AGENT = applicant?.agents ?? SAMPLE_AGENT;
+
   return (
     <div className="mx-auto max-w-6xl">
       <p className="text-sm font-semibold text-emerald-600">
@@ -99,7 +146,7 @@ export default function DashboardPage() {
         <p className="text-sm font-bold text-ink">{APPLICATION.id}</p>
 
         <div className="mt-6 flex items-start overflow-x-auto pb-2">
-          {STEPS.map((step, i) => (
+          {STEPS.map((step: any, i: number) => (
             <div key={step.title} className="flex flex-1 items-start last:flex-none">
               <div className="flex min-w-[92px] flex-col items-center gap-2 text-center">
                 <span
@@ -111,11 +158,7 @@ export default function DashboardPage() {
                       : "bg-black/5 text-muted"
                   }`}
                 >
-                  {i < CURRENT_STEP ? (
-                    <CheckCircle2 className="h-5 w-5" />
-                  ) : (
-                    i + 1
-                  )}
+                  {i < CURRENT_STEP ? <CheckCircle2 className="h-5 w-5" /> : i + 1}
                 </span>
                 <span
                   className={`text-[11px] font-semibold leading-tight sm:text-xs ${
@@ -159,9 +202,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-black/5 bg-white p-4">
           <IndianRupee className="h-4 w-4 text-brand" />
           <p className="mt-2 text-xs text-muted">Estimated EMI</p>
-          <p className="text-sm font-bold text-ink">
-            {formatINR(APPLICATION.emi)}
-          </p>
+          <p className="text-sm font-bold text-ink">{formatINR(APPLICATION.emi)}</p>
         </div>
       </div>
 
@@ -192,7 +233,7 @@ export default function DashboardPage() {
 
         <div className="relative mt-6 flex flex-col gap-7 pl-4">
           <span className="absolute left-[19px] top-2 h-[calc(100%-1rem)] w-px bg-black/10" />
-          {STEPS.map((step, i) => (
+          {STEPS.map((step: any, i: number) => (
             <div key={step.title} className="relative flex gap-4">
               <span
                 className={`z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
@@ -221,7 +262,7 @@ export default function DashboardPage() {
                 </p>
                 <p className="mt-0.5 text-sm text-muted">{step.desc}</p>
 
-                {i === CURRENT_STEP && (
+                {i === CURRENT_STEP && APPLICATION.pendingFee > 0 && (
                   <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
                     <p className="flex items-center gap-2 text-sm font-bold text-ink">
                       <IndianRupee className="h-4 w-4 text-amber-600" />
@@ -244,9 +285,7 @@ export default function DashboardPage() {
                           {PAY_TO.accountHolder}
                         </p>
                         <p>
-                          <span className="font-semibold text-ink">
-                            Bank Name:
-                          </span>{" "}
+                          <span className="font-semibold text-ink">Bank Name:</span>{" "}
                           {PAY_TO.bankName}
                         </p>
                         <p>
@@ -294,7 +333,7 @@ export default function DashboardPage() {
       <div className="mt-5 rounded-2xl border border-black/5 bg-white p-5 sm:p-6">
         <h2 className="text-lg font-bold text-ink">Submission Checklist</h2>
         <div className="mt-4 flex flex-col gap-3">
-          {CHECKLIST.map((doc) => (
+          {checklist.map((doc: any) => (
             <div
               key={doc.name}
               className="flex items-center justify-between rounded-xl border border-black/5 bg-[#FAFAFE] px-4 py-3.5"
@@ -318,9 +357,9 @@ export default function DashboardPage() {
       <div className="mt-5 grid gap-5 md:grid-cols-2">
         <div className="rounded-2xl border border-black/5 bg-white p-5 sm:p-6">
           <h3 className="text-base font-bold text-ink">Your Agent</h3>
-          <p className="mt-3 text-sm font-semibold text-ink">Ashish K.</p>
+          <p className="mt-3 text-sm font-semibold text-ink">{AGENT.name}</p>
           <p className="mt-1 flex items-center gap-2 text-sm text-muted">
-            <Phone className="h-4 w-4" /> +91 75860 39825
+            <Phone className="h-4 w-4" /> {AGENT.phone}
           </p>
           <button className="mt-4 flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white">
             <MessageCircle className="h-4 w-4" /> WhatsApp Support
@@ -343,15 +382,11 @@ export default function DashboardPage() {
         <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
           <div>
             <p className="text-xs text-muted">Applicant</p>
-            <p className="text-sm font-bold text-ink">
-              {APPLICATION.applicantName}
-            </p>
+            <p className="text-sm font-bold text-ink">{APPLICATION.applicantName}</p>
           </div>
           <div>
             <p className="text-xs text-muted">Loan Applied For</p>
-            <p className="text-sm font-bold text-ink">
-              {APPLICATION.loanPurpose}
-            </p>
+            <p className="text-sm font-bold text-ink">{APPLICATION.loanPurpose}</p>
           </div>
           <div>
             <p className="text-xs text-muted">Loan Amount</p>
@@ -367,21 +402,15 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-xs text-muted">Interest Rate</p>
-            <p className="text-sm font-bold text-ink">
-              {APPLICATION.interestRate}%
-            </p>
+            <p className="text-sm font-bold text-ink">{APPLICATION.interestRate}%</p>
           </div>
           <div>
             <p className="text-xs text-muted">Estimated EMI</p>
-            <p className="text-sm font-bold text-ink">
-              {formatINR(APPLICATION.emi)}
-            </p>
+            <p className="text-sm font-bold text-ink">{formatINR(APPLICATION.emi)}</p>
           </div>
           <div>
             <p className="text-xs text-muted">Current Application Status</p>
-            <p className="text-sm font-bold text-amber-600">
-              {APPLICATION.status}
-            </p>
+            <p className="text-sm font-bold text-amber-600">{APPLICATION.status}</p>
           </div>
           <div>
             <p className="text-xs text-muted">Pending Fee</p>
@@ -392,5 +421,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardInner />
+    </Suspense>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   PiggyBank,
@@ -281,6 +282,7 @@ function FaqItem({
 /* ------------------------------------------------------------------ */
 
 export default function Home() {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(true);
@@ -403,7 +405,10 @@ export default function Home() {
             </p>
 
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={(e) => {
+                e.preventDefault();
+                router.push("/apply-now");
+              }}
               className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:mx-0 sm:flex-row"
             >
               <div className="flex flex-1 items-center gap-2 rounded-full bg-white px-4 py-3.5 shadow-lg shadow-black/10">
@@ -561,7 +566,7 @@ export default function Home() {
                     {loan.desc}
                   </p>
                   <a
-                    href="#contact"
+                    href="/apply-now"
                     className="mt-5 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-brand py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
                   >
                     Apply Now
@@ -726,7 +731,7 @@ export default function Home() {
               </div>
 
               <a
-                href="#contact"
+                href="/apply-now"
                 className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-dark sm:w-fit sm:px-8"
               >
                 Apply for This Loan
@@ -941,7 +946,7 @@ export default function Home() {
       {/* ---------------------------------------------------------- */}
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-black/5 bg-white/95 p-3 backdrop-blur sm:hidden">
         <a
-          href="#home"
+          href="/apply-now"
           className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3 text-sm font-semibold text-white"
         >
           Apply Now <ArrowRight className="h-4 w-4" />

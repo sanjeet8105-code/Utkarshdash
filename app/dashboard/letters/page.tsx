@@ -1,21 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { FileText, Eye, Download, RefreshCw } from "lucide-react";
 
-const LETTERS = [
-  {
-    type: "Welcome Letter",
-    docId: "WELCOME-LETTER",
-    issuedOn: "—",
-    status: "Issued",
-  },
-  {
-    type: "Approval Letter",
-    docId: "APPROVAL-LETTER",
-    issuedOn: "—",
-    status: "Issued",
-  },
+const SAMPLE_LETTERS = [
+  { type: "Welcome Letter", docId: "WELCOME-LETTER", issuedOn: "—", status: "Issued" },
+  { type: "Approval Letter", docId: "APPROVAL-LETTER", issuedOn: "—", status: "Issued" },
   {
     type: "Approval Unpaid Letter",
     docId: "DOC-1",
@@ -37,21 +28,53 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function LettersPage() {
+function LettersInner() {
+  const id = useSearchParams().get("id");
   const [refreshing, setRefreshing] = useState(false);
+  const [letters, setLetters] = useState<any[] | null>(null);
+
+  function load() {
+    if (!id) return;
+    setRefreshing(true);
+    fetch(`/api/dashboard/summary?id=${id}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.error && json.letters) {
+          setLetters(
+            json.letters.map((l: any) => ({
+              type: l.letter_type,
+              docId: l.document_id ?? "—",
+              issuedOn: l.issued_on
+                ? new Date(l.issued_on).toLocaleString("en-IN")
+                : "—",
+              status:
+                l.status === "issued"
+                  ? "Issued"
+                  : l.status === "payment_due"
+                  ? "Payment Due"
+                  : "Pending",
+            }))
+          );
+        }
+      })
+      .catch(() => {})
+      .finally(() => setTimeout(() => setRefreshing(false), 400));
+  }
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const rows = letters && letters.length > 0 ? letters : SAMPLE_LETTERS;
 
   return (
     <div className="mx-auto max-w-5xl">
       <div className="rounded-2xl border border-black/5 bg-white p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-xl font-extrabold text-ink sm:text-2xl">
-            My Letters
-          </h1>
+          <h1 className="text-xl font-extrabold text-ink sm:text-2xl">My Letters</h1>
           <button
-            onClick={() => {
-              setRefreshing(true);
-              setTimeout(() => setRefreshing(false), 700);
-            }}
+            onClick={load}
             className="flex items-center gap-2 rounded-full border border-brand px-4 py-2 text-sm font-semibold text-brand"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -75,16 +98,14 @@ export default function LettersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5">
-              {LETTERS.map((letter) => (
-                <tr key={letter.docId}>
+              {rows.map((letter: any, i: number) => (
+                <tr key={i}>
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3">
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
                         <FileText className="h-4 w-4" />
                       </span>
-                      <span className="font-semibold text-ink">
-                        {letter.type}
-                      </span>
+                      <span className="font-semibold text-ink">{letter.type}</span>
                     </div>
                   </td>
                   <td className="py-4 pr-4 text-muted">{letter.docId}</td>
@@ -112,5 +133,13 @@ export default function LettersPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LettersPage() {
+  return (
+    <Suspense fallback={null}>
+      <LettersInner />
+    </Suspense>
   );
 }
