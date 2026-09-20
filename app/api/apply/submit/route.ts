@@ -67,14 +67,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: progressError.message }, { status: 500 });
   }
 
-  const { error: walletError } = await supabaseServer.from("wallets").upsert(
-    { applicant_id: id, sanctioned_amount: 0, balance: 0, is_locked: true },
-    { onConflict: "applicant_id" }
-  );
-
-  if (walletError) {
-    return NextResponse.json({ error: walletError.message }, { status: 500 });
-  }
-
   return NextResponse.json({ success: true });
 }

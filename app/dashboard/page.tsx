@@ -86,13 +86,11 @@ function DashboardInner() {
   }, [id]);
 
   const applicant = summary?.applicant;
-  const loan = summary?.loan;
-  const wallet = summary?.wallet;
   const dueFee = summary?.fees?.find((f: any) => f.status === "due");
-  const checklist = summary?.applicant
+  const checklist = applicant
     ? [
-        { name: "Aadhaar Card", status: summary?.document?.aadhar_status ?? "pending" },
-        { name: "PAN Card", status: summary?.document?.pan_status ?? "pending" },
+        { name: "Aadhaar Card", status: applicant.aadhar_status ?? "pending" },
+        { name: "PAN Card", status: applicant.pan_status ?? "pending" },
       ]
     : [
         { name: "Aadhaar Card", status: "pending" },
@@ -102,15 +100,15 @@ function DashboardInner() {
   const APPLICATION = applicant
     ? {
         id: `APP${applicant.id.slice(0, 8).toUpperCase()}`,
-        applicantName: summary?.personalInfo?.full_name || "Applicant",
-        loanPurpose: loan?.loan_purpose || SAMPLE_APPLICATION.loanPurpose,
-        loanAmount: loan?.loan_amount ?? SAMPLE_APPLICATION.loanAmount,
-        tenureMonths: loan?.tenure_months ?? SAMPLE_APPLICATION.tenureMonths,
-        interestRate: loan?.interest_rate ?? SAMPLE_APPLICATION.interestRate,
-        emi: loan?.emi ?? SAMPLE_APPLICATION.emi,
+        applicantName: applicant.full_name || "Applicant",
+        loanPurpose: applicant.loan_purpose || SAMPLE_APPLICATION.loanPurpose,
+        loanAmount: applicant.loan_amount ?? SAMPLE_APPLICATION.loanAmount,
+        tenureMonths: applicant.tenure_months ?? SAMPLE_APPLICATION.tenureMonths,
+        interestRate: applicant.interest_rate ?? SAMPLE_APPLICATION.interestRate,
+        emi: applicant.emi ?? SAMPLE_APPLICATION.emi,
         status: applicant.status ?? SAMPLE_APPLICATION.status,
         pendingFee: dueFee?.amount ?? 0,
-        walletBalance: wallet?.sanctioned_amount ?? 0,
+        walletBalance: applicant.wallet_sanctioned_amount ?? 0,
       }
     : SAMPLE_APPLICATION;
 

@@ -14,26 +14,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const payload: Record<string, unknown> = { applicant_id: id };
+  const updates: Record<string, unknown> = { status: step };
   for (const field of config.fields) {
-    if (data?.[field] !== undefined) payload[field] = data[field];
+    if (data?.[field] !== undefined) updates[field] = data[field];
   }
 
-  const { error: upsertError } = await supabaseServer
-    .from(config.table)
-    .upsert(payload, { onConflict: "applicant_id" });
-
-  if (upsertError) {
-    return NextResponse.json({ error: upsertError.message }, { status: 500 });
-  }
-
-  const { error: statusError } = await supabaseServer
+  const { error } = await supabaseServer
     .from("applicants")
-    .update({ status: step })
+    .update(updates)
     .eq("id", id);
 
-  if (statusError) {
-    return NextResponse.json({ error: statusError.message }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

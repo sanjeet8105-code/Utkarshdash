@@ -71,33 +71,30 @@ function ProfileInner() {
   }, [id]);
 
   const applicant = summary?.applicant;
-  const personal = summary?.personalInfo;
-  const bank = summary?.bank;
-  const loan = summary?.loan;
 
-  const PROFILE = personal
+  const PROFILE = applicant
     ? {
-        name: personal.full_name || "Applicant",
-        email: personal.email || "—",
-        mobile: applicant?.mobile_number || "—",
+        name: applicant.full_name || "Applicant",
+        email: applicant.email || "—",
+        mobile: applicant.mobile_number || "—",
       }
     : SAMPLE_PROFILE;
 
-  const BANK = bank
+  const BANK = applicant
     ? {
-        bankName: bank.bank_name || "—",
-        accountNumber: bank.account_number || "—",
-        ifsc: bank.ifsc_code || "—",
-        accountHolder: bank.account_holder_name || "—",
+        bankName: applicant.bank_name || "—",
+        accountNumber: applicant.account_number || "—",
+        ifsc: applicant.ifsc_code || "—",
+        accountHolder: applicant.account_holder_name || "—",
       }
     : SAMPLE_BANK;
 
-  const LOAN = loan
+  const LOAN = applicant
     ? {
-        amount: loan.loan_amount ?? 0,
-        tenureMonths: loan.tenure_months ?? 0,
-        emi: loan.emi ?? 0,
-        status: applicant?.status ?? "In Progress",
+        amount: applicant.loan_amount ?? 0,
+        tenureMonths: applicant.tenure_months ?? 0,
+        emi: applicant.emi ?? 0,
+        status: applicant.status ?? "In Progress",
       }
     : SAMPLE_LOAN;
 

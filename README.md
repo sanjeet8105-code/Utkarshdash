@@ -29,11 +29,14 @@ tailwind.config.ts
 
 1. Create a project at supabase.com.
 2. Open **SQL Editor → New query**, paste the contents of
-   `supabase/schema.sql`, and run it. This creates every table:
-   `agents`, `applicants`, `personal_info`, `kyc_documents`, `addresses`,
-   `loan_details`, `bank_details`, `application_progress`, `wallets`,
-   `wallet_transactions`, `letters`, `fee_payments` — one table per section,
-   all linked back to `applicants` by `applicant_id`.
+   `supabase/schema.sql`, and run it. This creates:
+   - `applicants` — **one row per user**, holding every field from all 5
+     wizard steps (personal info, documents, address, loan, bank) plus
+     wallet balance fields, all in a single flat row.
+   - `agents`, `application_progress`, `wallet_transactions`, `letters`,
+     `fee_payments` — small child tables for things that are genuinely
+     *lists* per user (an applicant has many progress steps, many letters,
+     many fee payments), each linked back via `applicant_id`.
 3. Copy `.env.local.example` to `.env.local` and fill in:
    - `SUPABASE_URL` — Project Settings → API → Project URL
    - `SUPABASE_SERVICE_ROLE_KEY` — Project Settings → API → `service_role`

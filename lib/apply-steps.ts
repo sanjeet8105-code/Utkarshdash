@@ -1,25 +1,18 @@
-// Central map from a wizard step key to the table it saves into and which
-// fields are allowed through. Used by /api/apply/save so the route can't be
-// tricked into writing arbitrary columns.
+// Central map from a wizard step key to which columns on the single
+// `applicants` table it's allowed to write. Used by /api/apply/save so the
+// route can't be tricked into writing arbitrary columns.
 
-export const STEP_CONFIG: Record<
-  string,
-  { table: string; fields: string[] }
-> = {
+export const STEP_CONFIG: Record<string, { fields: string[] }> = {
   personal_info: {
-    table: "personal_info",
     fields: ["full_name", "email"],
   },
   document: {
-    table: "kyc_documents",
     fields: ["aadhar_number", "pan_number"],
   },
   address: {
-    table: "addresses",
     fields: ["address", "pincode", "state", "city"],
   },
   loan: {
-    table: "loan_details",
     fields: [
       "loan_amount",
       "loan_purpose",
@@ -29,7 +22,6 @@ export const STEP_CONFIG: Record<
     ],
   },
   bank: {
-    table: "bank_details",
     fields: [
       "account_holder_name",
       "account_number",

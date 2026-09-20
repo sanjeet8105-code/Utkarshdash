@@ -32,21 +32,20 @@ function WalletInner() {
       .catch(() => {});
   }, [id]);
 
-  const wallet = summary?.wallet;
-  const loan = summary?.loan;
+  const applicant = summary?.applicant;
 
-  const WALLET = wallet
+  const WALLET = applicant
     ? {
-        sanctionedLoan: wallet.sanctioned_amount ?? 0,
-        balance: wallet.balance ?? 0,
-        emi: loan?.emi ?? SAMPLE.emi,
-        tenureMonths: loan?.tenure_months ?? SAMPLE.tenureMonths,
+        sanctionedLoan: applicant.wallet_sanctioned_amount ?? 0,
+        balance: applicant.wallet_balance ?? 0,
+        emi: applicant.emi ?? SAMPLE.emi,
+        tenureMonths: applicant.tenure_months ?? SAMPLE.tenureMonths,
       }
     : SAMPLE;
 
   const transactions =
-    wallet?.wallet_transactions?.length > 0
-      ? wallet.wallet_transactions.map((t: any) => ({
+    summary?.transactions?.length > 0
+      ? summary.transactions.map((t: any) => ({
           label: t.label,
           date: new Date(t.transaction_date).toLocaleDateString("en-IN"),
           status: t.status === "due" ? "Due" : t.status === "paid" ? "Paid" : "Credited",
