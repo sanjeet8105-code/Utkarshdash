@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { clearStoredApplicantId } from "@/lib/applicant-session";
 import {
   LayoutDashboard,
   Wallet,
@@ -68,12 +69,15 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="p-4">
-        <Link
-          href="/"
-          className="flex items-center justify-center gap-2 rounded-xl border border-red-100 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
+        <button
+          onClick={() => {
+            clearStoredApplicantId();
+            window.location.href = "/";
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
         >
           <LogOut className="h-4 w-4" /> Logout
-        </Link>
+        </button>
       </div>
     </div>
   );
@@ -175,12 +179,15 @@ export default function DashboardLayout({
                     >
                       <HelpCircle className="h-4 w-4" /> Help
                     </Link>
-                    <Link
-                      href="/"
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50"
+                    <button
+                      onClick={() => {
+                        clearStoredApplicantId();
+                        window.location.href = "/";
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-50"
                     >
                       <LogOut className="h-4 w-4" /> Logout
-                    </Link>
+                    </button>
                   </div>
                 </>
               )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useApplicantId } from "@/lib/use-applicant-id";
 import { Lock, Sparkles, Info, Receipt, Wallet as WalletIcon } from "lucide-react";
 
 const SAMPLE = {
@@ -21,7 +21,7 @@ function formatINR(value: number) {
 }
 
 function WalletInner() {
-  const id = useSearchParams().get("id");
+  const id = useApplicantId();
   const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {

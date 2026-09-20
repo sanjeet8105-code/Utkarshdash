@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useApplicantId } from "@/lib/use-applicant-id";
 import {
   CheckCircle2,
   Clock,
@@ -72,7 +72,7 @@ function formatINR(value: number) {
 }
 
 function DashboardInner() {
-  const id = useSearchParams().get("id");
+  const id = useApplicantId();
   const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {

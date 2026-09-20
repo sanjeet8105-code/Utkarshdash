@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useApplicantId } from "@/lib/use-applicant-id";
 import { User, Landmark, TrendingUp, MessageSquare } from "lucide-react";
 
 const SAMPLE_PROFILE = {
@@ -59,7 +59,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function ProfileInner() {
-  const id = useSearchParams().get("id");
+  const id = useApplicantId();
   const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {

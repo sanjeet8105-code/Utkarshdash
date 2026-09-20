@@ -339,7 +339,7 @@ export default function Home() {
 
           <div className="hidden items-center gap-2 md:flex">
             <a
-              href="#contact"
+              href="/login"
               className="flex items-center gap-2 rounded-full border border-black/10 px-4 py-2 text-sm font-medium text-ink/70 transition-colors hover:border-brand hover:text-brand"
             >
               <User className="h-4 w-4" /> Login

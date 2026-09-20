@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useApplicantId } from "@/lib/use-applicant-id";
 import { AlertTriangle } from "lucide-react";
 
 const SAMPLE_HISTORY = [
@@ -15,7 +15,7 @@ function formatINR(value: number) {
 }
 
 function FeePaymentsInner() {
-  const id = useSearchParams().get("id");
+  const id = useApplicantId();
   const [fees, setFees] = useState<any[] | null>(null);
 
   useEffect(() => {

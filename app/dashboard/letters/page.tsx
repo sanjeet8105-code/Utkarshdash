@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useApplicantId } from "@/lib/use-applicant-id";
 import { FileText, Eye, Download, RefreshCw } from "lucide-react";
 
 const SAMPLE_LETTERS = [
@@ -29,7 +29,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function LettersInner() {
-  const id = useSearchParams().get("id");
+  const id = useApplicantId();
   const [refreshing, setRefreshing] = useState(false);
   const [letters, setLetters] = useState<any[] | null>(null);
 
