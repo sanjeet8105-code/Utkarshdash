@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getSupabaseServer } from "@/lib/supabase-server";
 
 // Mobile-number-only "login" — no OTP yet (that's the next step). This just
 // checks whether an application exists for the given number and, if so,
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { data, error } = await supabaseServer
+  const { data, error } = await getSupabaseServer()
     .from("applicants")
     .select("id")
     .eq("mobile_number", mobile)

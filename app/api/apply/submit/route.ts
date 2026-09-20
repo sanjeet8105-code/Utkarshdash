@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getSupabaseServer } from "@/lib/supabase-server";
 
 const DEFAULT_STEPS = [
   {
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing applicant id." }, { status: 400 });
   }
 
-  const { error: statusError } = await supabaseServer
+  const { error: statusError } = await getSupabaseServer()
     .from("applicants")
     .update({ status: "submitted" })
     .eq("id", id);
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     completed_at: i === 0 ? new Date().toISOString() : null,
   }));
 
-  const { error: progressError } = await supabaseServer
+  const { error: progressError } = await getSupabaseServer()
     .from("application_progress")
     .upsert(progressRows, { onConflict: "applicant_id,step_order" });
 

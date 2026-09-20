@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getSupabaseServer } from "@/lib/supabase-server";
 import { STEP_CONFIG } from "@/lib/apply-steps";
 
 export async function POST(req: Request) {
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     if (data?.[field] !== undefined) updates[field] = data[field];
   }
 
-  const { error } = await supabaseServer
+  const { error } = await getSupabaseServer()
     .from("applicants")
     .update(updates)
     .eq("id", id);

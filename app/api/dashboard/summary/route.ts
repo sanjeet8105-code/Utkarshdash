@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getSupabaseServer } from "@/lib/supabase-server";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -11,27 +11,27 @@ export async function GET(req: Request) {
 
   const [applicantRes, progressRes, lettersRes, feesRes, transactionsRes] =
     await Promise.all([
-      supabaseServer
+      getSupabaseServer()
         .from("applicants")
         .select("*, agents(name, phone, whatsapp)")
         .eq("id", id)
         .maybeSingle(),
-      supabaseServer
+      getSupabaseServer()
         .from("application_progress")
         .select("*")
         .eq("applicant_id", id)
         .order("step_order"),
-      supabaseServer
+      getSupabaseServer()
         .from("letters")
         .select("*")
         .eq("applicant_id", id)
         .order("created_at"),
-      supabaseServer
+      getSupabaseServer()
         .from("fee_payments")
         .select("*")
         .eq("applicant_id", id)
         .order("created_at"),
-      supabaseServer
+      getSupabaseServer()
         .from("wallet_transactions")
         .select("*")
         .eq("applicant_id", id)

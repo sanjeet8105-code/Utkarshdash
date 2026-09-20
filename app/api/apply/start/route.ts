@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase-server";
+import { getSupabaseServer } from "@/lib/supabase-server";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
   // Reuse an in-progress application for the same number instead of
   // creating a duplicate every time someone re-enters their number.
-  const { data: existing, error: lookupError } = await supabaseServer
+  const { data: existing, error: lookupError } = await getSupabaseServer()
     .from("applicants")
     .select("id, status")
     .eq("mobile_number", mobile)
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ id: existing.id, status: existing.status });
   }
 
-  const { data, error } = await supabaseServer
+  const { data, error } = await getSupabaseServer()
     .from("applicants")
     .insert({ mobile_number: mobile, status: "started" })
     .select("id, status")
